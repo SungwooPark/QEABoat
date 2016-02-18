@@ -18,12 +18,14 @@ def boat_plot(n,theta,d):
     pts = intersection_point(f1,f2,y)    
 
     plt.plot(pts[0], pts[1], 'ro')
+    center_of_mass = com(n,100)
+    plt.plot([center_of_mass[0]],[center_of_mass[1]], 'ro') #plot com
 
     plt.show()
 
 def com(n,density):
     """
-    Takes in value of n and density of a boat and returns a tuple of horizontal and vertiacal center of mass point
+    Takes in value of n and density of a boat and returns a tuple of horizontal and vertiacal coordinate of center of mass point
     """
     total_mass = dblquad(lambda z,y: density, -1,1, lambda y:np.absolute(y)**n-1,lambda y:0)[0]
     return (dblquad(lambda z,y: density*y,-1,1,lambda y:np.absolute(y)**n-1,lambda y:0)[0]/total_mass,dblquad(lambda z,y: density*z,-1,1,lambda y:np.absolute(y)**n-1,lambda y:0)[0]/total_mass)
@@ -36,7 +38,8 @@ def intersection_point(f1,f2,x):
     idx = np.argwhere(np.isclose(f1,f2, atol=0.01)).reshape(-1)
     return (x[idx], f1[idx])
 
-boat_plot(4,np.pi/4,1.2)
+boat_plot(3,np.pi/4,1.2)
+boat_plot(1,np.pi/3,1.2)
 
 #print dblquad(lambda z,y: 100*y,-1,1,lambda y:np.absolute(y)**2-1,lambda y:0)
 #print dblquad(lambda z,y: 100*z,-1,1,lambda y:np.absolute(y)**2-1,lambda y:0)
