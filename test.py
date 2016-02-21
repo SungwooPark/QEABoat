@@ -74,6 +74,7 @@ def boat_plot():
     plt.show()
 
 
+<<<<<<< HEAD
 def compare(intersect):
     global d
     global flag
@@ -89,11 +90,16 @@ def compare(intersect):
         return d
     return "Not working need to figure out what the hell is going on. Why is my life consumed by code. I eat breathe sleep python. go paul and ben! paul plz answer my email!"
 
+=======
+    plt.plot(pts[0], pts[1], 'ro')
+    center_of_mass = com(n,100)
+    plt.plot([center_of_mass[0]],[center_of_mass[1]], 'ro') #plot com
+>>>>>>> e04d82eeb262f9330afb18a0ab04e60cf45903c3
 
 
 def com(density):
     """
-    Takes in value of n and density of a boat and returns a tuple of horizontal and vertiacal center of mass point
+    Takes in value of n and density of a boat and returns a tuple of horizontal and vertiacal coordinate of center of mass point
     """
     total_mass = dblquad(lambda z,y: density, -1,1, lambda y:np.absolute(y)**n-1,lambda y:0)[0]
     return (dblquad(lambda z,y: density*y,-1,1,lambda y:np.absolute(y)**n-1,lambda y:0)[0]/total_mass,dblquad(lambda z,y: density*z,-1,1,lambda y:np.absolute(y)**n-1,lambda y:0)[0]/total_mass)
@@ -104,6 +110,7 @@ def intersection_point(f1,f2,x):
     As two lists - one for x coordinates and one for y coordinate
     """
 
+<<<<<<< HEAD
 #def func2(y):
     #return np.absolute(y)**2 - 1- (-np.tan(np.pi/4)*y - 1.2)
 
@@ -147,6 +154,10 @@ def displacement(intersect):
         return (21312,)
     
 boat_plot()
+=======
+boat_plot(3,np.pi/4,1.2)
+boat_plot(1,np.pi/3,1.2)
+>>>>>>> e04d82eeb262f9330afb18a0ab04e60cf45903c3
 
 #print dblquad(lambda z,y: 100*y,-1,1,lambda y:np.absolute(y)**2-1,lambda y:0)
 #print dblquad(lambda z,y: 100*z,-1,1,lambda y:np.absolute(y)**2-1,lambda y:0)
