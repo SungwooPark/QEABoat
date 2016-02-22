@@ -31,7 +31,6 @@ def intersection(hull_func,water_func,n,theta,d):
     '''
     func_difference = lambda y: (-np.tan(theta)*y - d) - (np.absolute(y)**n - 1)
     root = fsolve(func_difference,[-10,10])
-    print "init_root: ", root
 
     if np.absolute(root[0]) > 1:
         root[0] = fsolve(water_func,0)
@@ -46,13 +45,21 @@ def displacement(hull_func, water_func,n,theta,d):
         args: limits - a list with 2 elements (roots)
     '''
     limits = intersection(hull_func, water_func,n,theta,d)
-    func_difference = lambda y: (-np.tan(theta)*y - d)- (np.absolute(y)**n - 1)
+    func_difference_down = lambda y: (-np.tan(theta)*y - d)- (np.absolute(y)**n - 1)
+    func_difference_up = lambda y: (-np.tan(theta)*y - d)
     
     print "root value: ", abs(water_func(limits[0]))
     if abs(water_func(limits[0]))<0.01:
         area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
         print 'area1: ',area1
-        area2 = integrate.quad(func_difference,limits[0],limits[1])[0]
+        area2 = integrate.quad(func_difference_down,limits[0],limits[1])[0]
+        print 'area2: ',area2
+        displacement = area1 + area2
+        print 'displacement: ',displacement
+    elif abs(water_func(limits[1]))<0.01:
+        area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
+        print 'area1: ',area1
+        area2 = np.absolute(integrate.quad(func_difference_up,limits[0],limits[1])[0])
         print 'area2: ',area2
         displacement = area1 + area2
         print 'displacement: ',displacement
@@ -86,4 +93,4 @@ def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     
     plt.show()
 
-righting_arm(2, np.pi/3)
+righting_arm(2, np.pi/2+0.3)
