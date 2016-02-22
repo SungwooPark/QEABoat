@@ -25,7 +25,7 @@ def righting_arm(n,theta):
     
     #displacement(hull_function, water_line,n,theta,d) 
     varying_theta_calc_displacement(n,d)
-  #  plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
+    plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
     '''
@@ -34,7 +34,13 @@ def intersection(hull_func,water_func,n,theta,d):
     func_difference = lambda y: (-np.tan(theta)*y - d) - (np.absolute(y)**n - 1)
     root = fsolve(func_difference,[-10,10])
 
-    if np.absolute(root[0]) > 1:
+    if theta > math.radians(80) and theta < math.radians(90):
+        root[0] = fsolve(water_func,0)
+        root[1] = fsolve(func_difference,0)
+    elif theta > math.radians(90) and theta < math.radians(100):
+        root[0] = fsolve(func_difference,0)
+        root[1] = fsolve(water_func,0)
+    elif np.absolute(root[0]) > 1:
         root[0] = fsolve(water_func,0)
     elif np.absolute(root[1]) >1:
         root[1] = fsolve(water_func,0)
@@ -99,19 +105,19 @@ def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     plt.show()
 
 def varying_theta_calc_displacement(n,d):
-    thetas = np.linspace(0,np.pi/2-0.1,50)
+    thetas = np.linspace(0,math.radians(140),80)
+    #thetas += np.linspace(math.radians(100),math.radians(180),50)
     displacements = []
     for angle in thetas:
         print 'angle: ',angle
         displacements.append(displacement(lambda y: np.absolute(y)**n - 1,
             lambda y: -np.tan(angle)*y - d,n,angle,d))
     print displacements
+    axes = plt.gca()
+    axes.set_ylim([0.4,0.7])
     plt.plot(thetas,displacements)
     plt.show()
 
 
 
-righting_arm(2, 0.4)
-righting_arm(2, 0.6)
-righting_arm(2,0.8)
-righting_arm(2,1.8)
+righting_arm(2, math.radians(90))
