@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 from scipy.optimize import fsolve
+import math
 
 def righting_arm(n,theta):
     '''
@@ -22,7 +23,8 @@ def righting_arm(n,theta):
     hull_function = lambda y: np.absolute(y)**n - 1
     water_line = lambda y: -np.tan(theta)*y - d
     
-    displacement(hull_function, water_line,n,theta,d) 
+    #displacement(hull_function, water_line,n,theta,d) 
+    varying_theta_calc_displacement(hull_function, water_line,n,d)
     plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
@@ -64,8 +66,11 @@ def displacement(hull_func, water_func,n,theta,d):
         displacement = area1 + area2
         print 'displacement: ',displacement
     else:     
-        result = integrate.quad(func_difference,limits[0],limits[1])
-        print "displacement volume: ", result[0]
+        displacement = integrate.quad(func_difference_down,limits[0],limits[1])[0]
+        print "displacement volume: ", displacement
+    return displacement
+    
+
  
 def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     '''
@@ -93,4 +98,19 @@ def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     
     plt.show()
 
-righting_arm(2, np.pi/2+0.3)
+def varying_theta_calc_displacement(hull_func,water_func,n,d):
+    thetas = np.linspace(0,np.pi/2-0.1,50)
+    displacements = []
+    for angle in thetas:
+        print 'angle: ',angle
+        displacements.append(displacement(hull_func,water_func,n,angle,d))
+    print displacements
+    plt.plot(thetas,displacements)
+    plt.show()
+
+
+
+righting_arm(2, 0.4)
+righting_arm(2, 0.6)
+righting_arm(2,0.8)
+righting_arm(2,1.8)
