@@ -23,9 +23,10 @@ def righting_arm(n,theta):
     hull_function = lambda y: np.absolute(y)**n - 1
     water_line = lambda y: -np.tan(theta)*y - d
     
+    print compare(hull_function,water_line,n,theta)
     #displacement(hull_function, water_line,n,theta,d) 
-    varying_theta_calc_displacement(n,d)
-    plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
+    #varying_theta_calc_displacement(n,d)
+    #plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
     '''
@@ -34,6 +35,7 @@ def intersection(hull_func,water_func,n,theta,d):
     func_difference = lambda y: (-np.tan(theta)*y - d) - (np.absolute(y)**n - 1)
     root = fsolve(func_difference,[-10,10])
 
+    print 'init root: ',root
     if theta > math.radians(80) and theta < math.radians(90):
         root[0] = fsolve(water_func,0)
         root[1] = fsolve(func_difference,0)
@@ -49,34 +51,56 @@ def intersection(hull_func,water_func,n,theta,d):
 
 def displacement(hull_func, water_func,n,theta,d):
     '''
-        Finds a volume under water
+        returns a volume under water
         args: limits - a list with 2 elements (roots)
     '''
     limits = intersection(hull_func, water_func,n,theta,d)
     func_difference_down = lambda y: (-np.tan(theta)*y - d)- (np.absolute(y)**n - 1)
     func_difference_up = lambda y: (-np.tan(theta)*y - d)
     
-    print "root value: ", abs(water_func(limits[0]))
+    #print "root value: ", abs(water_func(limits[0]))
     if abs(water_func(limits[0]))<0.01:
         area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
-        print 'area1: ',area1
+        #print 'area1: ',area1
         area2 = integrate.quad(func_difference_down,limits[0],limits[1])[0]
-        print 'area2: ',area2
+        #print 'area2: ',area2
         displacement = area1 + area2
-        print 'displacement: ',displacement
+        #print 'displacement: ',displacement
     elif abs(water_func(limits[1]))<0.01:
         area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
-        print 'area1: ',area1
+        #print 'area1: ',area1
         area2 = np.absolute(integrate.quad(func_difference_up,limits[0],limits[1])[0])
-        print 'area2: ',area2
+        #print 'area2: ',area2
         displacement = area1 + area2
-        print 'displacement: ',displacement
+        #print 'displacement: ',displacement
     else:     
         displacement = integrate.quad(func_difference_down,limits[0],limits[1])[0]
-        print "displacement volume: ", displacement
+        #print "displacement volume: ", displacement
     return displacement
     
+def total_mass(hull_func,n,theta):
+    '''
+        returns a total mass of hull in kg / m^3
+    '''
+    density = 31.7 #kg/m^3
+    volume = -integrate.quad(hull_func,-1,1)[0]
+    mass = density * volume
+    return mass
 
+def compare(hull_func, water_func,n,theta):
+    '''
+        returns a value of d in which buoyancy = gravitational force
+    '''
+    d = np.linspace(-10,10,1000)
+    for num in d:
+        displaced_water = displacement(hull_func, water_func,n,theta,num)
+        buoyancy = 1000 * displaced_water
+        print "buoyancy: ", buoyancy
+        print "total mass: ", total_mass(hull_func,n,theta)
+        print "diff: ", np.absolute(total_mass(hull_func,n,theta)-buoyancy)
+        if np.absolute(total_mass(hull_func,n,theta)-buoyancy) < 2:
+            return num
+    return "Error 404: d not found"
  
 def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     '''
@@ -106,18 +130,15 @@ def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
 
 def varying_theta_calc_displacement(n,d):
     thetas = np.linspace(0,math.radians(140),80)
-    #thetas += np.linspace(math.radians(100),math.radians(180),50)
     displacements = []
     for angle in thetas:
-        print 'angle: ',angle
+        #print 'angle: ',angle
         displacements.append(displacement(lambda y: np.absolute(y)**n - 1,
             lambda y: -np.tan(angle)*y - d,n,angle,d))
-    print displacements
+    #print displacements
     axes = plt.gca()
-    axes.set_ylim([0.4,0.7])
+    axes.set_ylim([0.4,0.8])
     plt.plot(thetas,displacements)
     plt.show()
 
-
-
-righting_arm(2, math.radians(90))
+righting_arm(2, math.radians(50))
