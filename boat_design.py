@@ -27,7 +27,7 @@ def righting_arm(n,theta):
     
     print 'd: ', d
 
-    #call COB function
+    #print "cob: ", cob(hull_function, water_line,n,theta,d)
 
     #varying_theta_calc_displacement(n,d)
   
@@ -42,7 +42,7 @@ def intersection(hull_func,water_func,n,theta,d):
     func_difference = lambda y: (-np.tan(theta)*y - d) - (np.absolute(y)**n - 1)
     root = fsolve(func_difference,[-10,10])
 
-    print 'init root: ',root
+    #print 'init root: ',root
     if theta > math.radians(80) and theta < math.radians(90):
         root[0] = fsolve(water_func,0)
         root[1] = fsolve(func_difference,0)
@@ -53,7 +53,7 @@ def intersection(hull_func,water_func,n,theta,d):
         root[0] = fsolve(water_func,0)
     elif np.absolute(root[1]) >1:
         root[1] = fsolve(water_func,0)
-    print 'this is root', root
+    #print 'this is root', root
     return root
 
 def displacement(hull_func, water_func,n,theta,m):
@@ -99,15 +99,15 @@ def compare(hull_func,n,theta):
     '''
         returns a value of d in which buoyancy = gravitational force
     '''
-    d = np.linspace(-10,10,1000)
+    d = np.linspace(-10,10,20000)
     for num in d:
         displaced_water = displacement(hull_func,lambda y: -np.tan(theta)*y - num,n,theta,num)
         buoyancy = 1000 * displaced_water
-        print "buoyancy: ", buoyancy
-        print "dispaced_water", displaced_water
-        print "total mass: ", total_mass(hull_func,n,theta)
-        print "diff: ", np.absolute(total_mass(hull_func,n,theta)-buoyancy)
-        if np.absolute(total_mass(hull_func,n,theta)-buoyancy) < 2:
+        #print "buoyancy: ", buoyancy
+        #print "dispaced_water", displaced_water
+        #print "total mass: ", total_mass(hull_func,n,theta)
+        #print "diff: ", np.absolute(total_mass(hull_func,n,theta)-buoyancy)
+        if np.absolute(total_mass(hull_func,n,theta)-buoyancy) < 0.5:
             return num
     return "Error 404: d not found"
  
@@ -150,5 +150,53 @@ def varying_theta_calc_displacement(n,d):
     plt.plot(thetas,displacements)
     plt.show()
 
-def cob():
-righting_arm(2, math.radians(95))
+def cob(hull_func, water_func,n,theta,m):
+    disp = displacement(hull_func, water_func,n,theta,m)
+
+    limits = intersection(hull_func, water_func,n,theta,m)
+    
+    #this is just here for reference, equations for mass of watah
+    func_difference_down = lambda y: (-np.tan(theta)*y - m)- (np.absolute(y)**n - 1)
+    func_difference_up = lambda y: (-np.tan(theta)*y - m)
+    
+    #equations for moment in z direction
+    func_difference_down_z = lambda y: ((-np.tan(theta)*y - m)- (np.absolute(y)**n - 1))*y
+    func_difference_up_z = lambda y: ((-np.tan(theta)*y - m)*y)*y
+    hull_func_z = lambda y: (np.absolute(y)**n - 1)*y
+   
+    #equations for moment in y direction
+    func_difference_down_y = lambda y: .5*((-np.tan(theta)*y - m)**2- (np.absolute(y)**n - 1)**2)
+    func_difference_up_y = lambda y: .5*((-np.tan(theta)*y)**2 - m**2)
+    hull_func_y = lambda y: .5*(-(np.absolute(y)**n - 1)**2)
+
+    if abs(water_func(limits[0]))<0.01:
+        area1_z = np.absolute(integrate.quad(hull_func_z,-1,limits[0])[0])
+        area1_y = np.absolute(integrate.quad(hull_func_y,-1,limits[0])[0])
+        #print 'area1: ',area1
+        area2_z = integrate.quad(func_difference_down_z,limits[0],limits[1])[0]
+        area2_y = integrate.quad(func_difference_down_y,limits[0],limits[1])[0]
+        #print 'area2: ',area2
+        disp_z = .5*(area1_z + area2_z)
+        disp_y = .5*(area1_y + area2_y)
+        #print 'displacement: ',displacement
+    elif abs(water_func(limits[1]))<0.01:
+        area1_z = np.absolute(integrate.quad(hull_func_z,-1,limits[0])[0])
+        area1_y = np.absolute(integrate.quad(hull_func_y,-1,limits[0])[0])
+        #print 'area1: ',area1
+        area2_z = np.absolute(integrate.quad(func_difference_up_z,limits[0],limits[1])[0])
+        area2_y = np.absolute(integrate.quad(func_difference_up_y,limits[0],limits[1])[0])
+        #print 'area2: ',area2
+        disp_z = .5*(area1_z + area2_z)
+        disp_y = .5*(area1_y + area2_y)
+        #print 'displacement: ',displacement
+    else:     
+        disp_z = integrate.quad(func_difference_down_z,limits[0],limits[1])[0]
+        disp_y = integrate.quad(func_difference_down_y,limits[0],limits[1])[0]
+
+        #print "displacement volume: ", displacement
+    print "z: ", (-1 + disp_z)
+    print "y: ", (-1 + disp_y) 
+    return (disp_y,disp_z)
+
+
+righting_arm(2, math.radians(130))
