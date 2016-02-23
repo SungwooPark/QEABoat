@@ -1,3 +1,4 @@
+
 '''
 Quantitative Engineering Analysis course Spring 2016
 Boat Design calculation code
@@ -23,10 +24,19 @@ def righting_arm(n,theta):
     hull_function = lambda y: np.absolute(y)**n - 1
     water_line = lambda y: -np.tan(theta)*y - d
     
-    print compare(hull_function,water_line,n,theta)
+    d = compare(hull_function,n,theta)
+    print 'd: ', d
     #displacement(hull_function, water_line,n,theta,d) 
     #varying_theta_calc_displacement(n,d)
-    #plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
+
+    #reprinting all the functions below so that the new 'd' value gets implemented
+    #not sure if this is good coding practice, but it's the way that worked..
+    hull_function_real = lambda y: np.absolute(y)**n - 1
+    water_line_real = lambda y: -np.tan(theta)*y - d
+    f1 = np.absolute(y)**n - 1 #Hull function without lambda    
+    f2 = -np.tan(theta)*y - d
+
+    plot_graph(f1, f2,hull_function,water_line,intersection(hull_function_real,water_line_real,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
     '''
@@ -49,16 +59,17 @@ def intersection(hull_func,water_func,n,theta,d):
     print 'this is root', root
     return root
 
-def displacement(hull_func, water_func,n,theta,d):
+def displacement(hull_func, water_func,n,theta,m):
     '''
         returns a volume under water
         args: limits - a list with 2 elements (roots)
     '''
-    limits = intersection(hull_func, water_func,n,theta,d)
-    func_difference_down = lambda y: (-np.tan(theta)*y - d)- (np.absolute(y)**n - 1)
-    func_difference_up = lambda y: (-np.tan(theta)*y - d)
+    limits = intersection(hull_func, water_func,n,theta,m)
+    func_difference_down = lambda y: (-np.tan(theta)*y - m)- (np.absolute(y)**n - 1)
+    func_difference_up = lambda y: (-np.tan(theta)*y - m)
     
-    #print "root value: ", abs(water_func(limits[0]))
+   # print "root value: ", abs(water_func(limits[0]))
+
     if abs(water_func(limits[0]))<0.01:
         area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
         #print 'area1: ',area1
@@ -87,15 +98,16 @@ def total_mass(hull_func,n,theta):
     mass = density * volume
     return mass
 
-def compare(hull_func, water_func,n,theta):
+def compare(hull_func,n,theta):
     '''
         returns a value of d in which buoyancy = gravitational force
     '''
-    d = np.linspace(-10,10,1000)
+    d = np.linspace(-1,1,1000)
     for num in d:
-        displaced_water = displacement(hull_func, water_func,n,theta,num)
+        displaced_water = displacement(hull_func,lambda y: -np.tan(theta)*y - num,n,theta,num)
         buoyancy = 1000 * displaced_water
         print "buoyancy: ", buoyancy
+        print "dispaced_water", displaced_water
         print "total mass: ", total_mass(hull_func,n,theta)
         print "diff: ", np.absolute(total_mass(hull_func,n,theta)-buoyancy)
         if np.absolute(total_mass(hull_func,n,theta)-buoyancy) < 2:
@@ -141,4 +153,4 @@ def varying_theta_calc_displacement(n,d):
     plt.plot(thetas,displacements)
     plt.show()
 
-righting_arm(2, math.radians(50))
+righting_arm(2, math.radians(30))
