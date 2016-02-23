@@ -22,21 +22,18 @@ def righting_arm(n,theta):
     f2 = -np.tan(theta)*y - d
 
     hull_function = lambda y: np.absolute(y)**n - 1
+    d = compare(hull_function,n,theta)
     water_line = lambda y: -np.tan(theta)*y - d
     
-    d = compare(hull_function,n,theta)
     print 'd: ', d
-    #displacement(hull_function, water_line,n,theta,d) 
-    #varying_theta_calc_displacement(n,d)
 
-    #reprinting all the functions below so that the new 'd' value gets implemented
-    #not sure if this is good coding practice, but it's the way that worked..
-    hull_function_real = lambda y: np.absolute(y)**n - 1
-    water_line_real = lambda y: -np.tan(theta)*y - d
-    f1 = np.absolute(y)**n - 1 #Hull function without lambda    
+    #call COB function
+
+    #varying_theta_calc_displacement(n,d)
+  
     f2 = -np.tan(theta)*y - d
 
-    plot_graph(f1, f2,hull_function,water_line,intersection(hull_function_real,water_line_real,n,theta,d))
+    plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
     '''
@@ -102,7 +99,7 @@ def compare(hull_func,n,theta):
     '''
         returns a value of d in which buoyancy = gravitational force
     '''
-    d = np.linspace(-1,1,1000)
+    d = np.linspace(-10,10,1000)
     for num in d:
         displaced_water = displacement(hull_func,lambda y: -np.tan(theta)*y - num,n,theta,num)
         buoyancy = 1000 * displaced_water
@@ -153,4 +150,5 @@ def varying_theta_calc_displacement(n,d):
     plt.plot(thetas,displacements)
     plt.show()
 
-righting_arm(2, math.radians(30))
+def cob():
+righting_arm(2, math.radians(95))
