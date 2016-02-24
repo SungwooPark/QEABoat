@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 from scipy.optimize import fsolve
 import math
+# import seaborn as sns
 
 def righting_arm(n,theta):
     '''
@@ -27,13 +28,15 @@ def righting_arm(n,theta):
     
     print 'd: ', d
 
-    #print "cob: ", cob(hull_function, water_line,n,theta,d)
+    coby = cob(hull_function,n,theta,d)
+    
+    print "cob: ", coby
 
     #varying_theta_calc_displacement(n,d)
   
     f2 = -np.tan(theta)*y - d
 
-    plot_graph(f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
+    plot_graph(coby, f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
     '''
@@ -70,7 +73,7 @@ def displacement(hull_func, water_func,n,theta,m):
     if abs(water_func(limits[0]))<0.01:
         area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
         #print 'area1: ',area1
-        area2 = integrate.quad(func_difference_down,limits[0],limits[1])[0]
+        area2 = np.absolute(integrate.quad(func_difference_down,limits[0],limits[1])[0])
         #print 'area2: ',area2
         displacement = area1 + area2
         #print 'displacement: ',displacement
@@ -82,7 +85,7 @@ def displacement(hull_func, water_func,n,theta,m):
         displacement = area1 + area2
         #print 'displacement: ',displacement
     else:     
-        displacement = integrate.quad(func_difference_down,limits[0],limits[1])[0]
+        displacement = np.absolute(integrate.quad(func_difference_down,limits[0],limits[1])[0])
         #print "displacement volume: ", displacement
     return displacement
     
@@ -111,7 +114,7 @@ def compare(hull_func,n,theta):
             return num
     return "Error 404: d not found"
  
-def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
+def plot_graph(cob, hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     '''
         plots the graph of the hull and water line
         args: intersection_points - a list of x coord of intersection of boat and waterline
@@ -129,6 +132,7 @@ def plot_graph(hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     plt.plot(y,hull)
     plt.plot(y,waterline)
     plt.plot([-2,2],[0,0])
+    plt.plot(cob[0],cob[1],'go')
 
     if np.absolute(lambda_waterline(root1)) < 0.01 or np.absolute(lambda_waterline(root2)) < 0.01:
         plt.plot([root1,root2],[lambda_waterline(root1),lambda_waterline(root2)], 'ro')
@@ -150,9 +154,10 @@ def varying_theta_calc_displacement(n,d):
     plt.plot(thetas,displacements)
     plt.show()
 
-def cob(hull_func, water_func,n,theta,m):
-    disp = displacement(hull_func, water_func,n,theta,m)
-
+def cob(hull_func,n,theta,m):
+    disp = displacement(hull_func, lambda y: -np.tan(theta)*y - m,n,theta,m)
+    print "disp, ", disp
+    water_func = lambda y: -np.tan(theta)*y - m
     limits = intersection(hull_func, water_func,n,theta,m)
     
     #this is just here for reference, equations for mass of watah
@@ -161,42 +166,55 @@ def cob(hull_func, water_func,n,theta,m):
     
     #equations for moment in z direction
     func_difference_down_z = lambda y: ((-np.tan(theta)*y - m)- (np.absolute(y)**n - 1))*y
-    func_difference_up_z = lambda y: ((-np.tan(theta)*y - m)*y)*y
-    hull_func_z = lambda y: (np.absolute(y)**n - 1)*y
+    func_difference_up_z = lambda y: (0 - (-np.tan(theta)*y - m))*y
+    hull_func_z = lambda y: -(np.absolute(y)**n - 1)*y
    
     #equations for moment in y direction
     func_difference_down_y = lambda y: .5*((-np.tan(theta)*y - m)**2- (np.absolute(y)**n - 1)**2)
-    func_difference_up_y = lambda y: .5*((-np.tan(theta)*y)**2 - m**2)
+    func_difference_up_y = lambda y: .5*(0 - (-np.tan(theta)*y - m)**2)
     hull_func_y = lambda y: .5*(-(np.absolute(y)**n - 1)**2)
 
     if abs(water_func(limits[0]))<0.01:
-        area1_z = np.absolute(integrate.quad(hull_func_z,-1,limits[0])[0])
-        area1_y = np.absolute(integrate.quad(hull_func_y,-1,limits[0])[0])
-        #print 'area1: ',area1
+        print "water line downnnnn and overdeck"
+        area1_z = integrate.quad(hull_func_z,-1,limits[0])[0]
+        print "area1_z: ", area1_z
+        area1_y = integrate.quad(hull_func_y,-1,limits[0])[0]
+        print "area1_y ", area1_y
         area2_z = integrate.quad(func_difference_down_z,limits[0],limits[1])[0]
+        print "area2_z: ", area2_z
         area2_y = integrate.quad(func_difference_down_y,limits[0],limits[1])[0]
-        #print 'area2: ',area2
-        disp_z = .5*(area1_z + area2_z)
-        disp_y = .5*(area1_y + area2_y)
-        #print 'displacement: ',displacement
+        print "area2_y: ", area2_y
+        disp_z =  (area1_z + area2_z)
+        disp_y =  (area1_y + area2_y)
     elif abs(water_func(limits[1]))<0.01:
-        area1_z = np.absolute(integrate.quad(hull_func_z,-1,limits[0])[0])
-        area1_y = np.absolute(integrate.quad(hull_func_y,-1,limits[0])[0])
-        #print 'area1: ',area1
-        area2_z = np.absolute(integrate.quad(func_difference_up_z,limits[0],limits[1])[0])
-        area2_y = np.absolute(integrate.quad(func_difference_up_y,limits[0],limits[1])[0])
+        print "water line upppppp and overdeck"
+        area1_z = (integrate.quad(hull_func_z,-1,limits[0])[0])
+        area1_y = (integrate.quad(hull_func_y,-1,limits[0])[0])
+
+        print 'limits: ' + str(limits)
+
+        print "area1_z: ", area1_z
+        print "area1_y ", area1_y
+        # print 'area1: ',area1
+        area2_z = (integrate.quad(func_difference_up_z,limits[0],limits[1])[0])
+        area2_y = (integrate.quad(func_difference_up_y,limits[0],limits[1])[0])
+        print "area2_z: ", area2_z
+        print "area2_y: ", area2_y
         #print 'area2: ',area2
-        disp_z = .5*(area1_z + area2_z)
-        disp_y = .5*(area1_y + area2_y)
+        disp_z = (area1_z + area2_z)
+        disp_y = (area1_y + area2_y)
         #print 'displacement: ',displacement
-    else:     
-        disp_z = integrate.quad(func_difference_down_z,limits[0],limits[1])[0]
-        disp_y = integrate.quad(func_difference_down_y,limits[0],limits[1])[0]
+    else:    
+        disp_z = (integrate.quad(func_difference_down_z,limits[0],limits[1])[0])
+        disp_y = (integrate.quad(func_difference_down_y,limits[0],limits[1])[0])
 
         #print "displacement volume: ", displacement
-    print "z: ", (-1 + disp_z)
-    print "y: ", (-1 + disp_y) 
-    return (disp_y,disp_z)
+    print "dispy, ", disp_y
+    print "dispz, ", disp_z
+    print "y: ", (disp_z/disp)
+    print "z: ", (disp_y/disp)
+    
+    return (disp_z/disp,disp_y/disp)
 
 
-righting_arm(2, math.radians(130))
+righting_arm(2, math.radians(140))
