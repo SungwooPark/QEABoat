@@ -29,22 +29,37 @@ def righting_arm(n,theta):
     print 'd: ', d
 
     coby = cob(hull_function,n,theta,d)
+
     
     print "cob: ", coby
     comy = com(hull_function, n, theta)
+    print "com: ", comy
+    distance_vector = (coby[0]-comy[0],coby[1]-comy[1])
+    print "distance vector: ", distance_vector
+    fbi = displacement(hull_function, water_line, n, theta, d) * 1000 * math.sin(math.pi-theta)
+    fbj = displacement(hull_function, water_line, n, theta, d) * 1000 * math.cos(math.pi-theta)
+    fb = (fbi,fbj)
+    print 'fb: ', fb 
+    final_value = np.cross(distance_vector,fb)
+    print 'final value: ', final_value
+    print total_mass(hull_function, n, theta)
 
     #varying_theta_calc_displacement(n,d)
-  
+
+    #return 
+
     f2 = -np.tan(theta)*y - d
 
     plot_graph(comy, coby, f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
+    return final_value
+
 def intersection(hull_func,water_func,n,theta,d):
     '''
         Takes in function representation of hull and water line and then returns the roots
     '''
     func_difference = lambda y: (-np.tan(theta)*y - d) - (np.absolute(y)**n - 1)
-    root = fsolve(func_difference,[-10,10])
+    root = fsolve(func_difference,[-40,40])
 
     #print 'init root: ',root
     if theta > math.radians(80) and theta < math.radians(90):
@@ -94,16 +109,18 @@ def total_mass(hull_func,n,theta):
     '''
         returns a total mass of hull in kg / m^3
     '''
+    can_mass = .36 #kg
+    mast_mass =.383 #kg
     density = 31.7 #kg/m^3
     volume = -integrate.quad(hull_func,-1,1)[0]
     mass = density * volume
-    return mass
+    return 900 #mass #=42... 
 
 def compare(hull_func,n,theta):
     '''
         returns a value of d in which buoyancy = gravitational force
     '''
-    d = np.linspace(-10,10,20000)
+    d = np.linspace(-20,20,100000)
     for num in d:
         displaced_water = displacement(hull_func,lambda y: -np.tan(theta)*y - num,n,theta,num)
         buoyancy = 1000 * displaced_water
@@ -135,7 +152,7 @@ def plot_graph(com, cob, hull,waterline,lambda_hull,lambda_waterline,intersectio
     plt.plot([-2,2],[0,0])
     plt.plot(cob[0],cob[1],'go')
     plt.plot(com[0],com[1],'bo')
-
+    
     if np.absolute(lambda_waterline(root1)) < 0.01 or np.absolute(lambda_waterline(root2)) < 0.01:
         plt.plot([root1,root2],[lambda_waterline(root1),lambda_waterline(root2)], 'ro')
     else:
@@ -154,6 +171,18 @@ def varying_theta_calc_displacement(n,d):
     axes = plt.gca()
     axes.set_ylim([0.4,0.8])
     plt.plot(thetas,displacements)
+    plt.show()
+
+def cabbage(n):
+    angles = [5,15,25,35,45,55,65,75,85,95,105,115,125,135,145]
+    torque = []
+    for ang in angles:
+        if ang == 90:
+            torque.append(20)
+        print "ang: ", ang
+        torque.append(righting_arm(2, math.radians(ang)))
+    axes = plt.gca()
+    plt.plot(angles,torque,'ro')
     plt.show()
 
 def cob(hull_func,n,theta,m):
@@ -225,9 +254,9 @@ def com(hull_func,n,theta):
     volume = -integrate.quad(hull_func,-1,1)[0]
 
     #print "cabbages for david, ", (z_moment_cabbage/volume, y_moment_cabbage/volume)
-    return (z_moment_cabbage/volume, y_moment_cabbage/volume)
+    return (z_moment_cabbage/volume, y_moment_cabbage/volume-.2)
     
 
 
-
-righting_arm(2, math.radians(140))
+righting_arm(2, math.radians(100))
+#cabbage(2)
