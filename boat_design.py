@@ -31,12 +31,13 @@ def righting_arm(n,theta):
     coby = cob(hull_function,n,theta,d)
     
     print "cob: ", coby
+    comy = com(hull_function, n, theta)
 
     #varying_theta_calc_displacement(n,d)
   
     f2 = -np.tan(theta)*y - d
 
-    plot_graph(coby, f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
+    plot_graph(comy, coby, f1, f2,hull_function,water_line,intersection(hull_function,water_line,n,theta,d))
    
 def intersection(hull_func,water_func,n,theta,d):
     '''
@@ -114,7 +115,7 @@ def compare(hull_func,n,theta):
             return num
     return "Error 404: d not found"
  
-def plot_graph(cob, hull,waterline,lambda_hull,lambda_waterline,intersection_points):
+def plot_graph(com, cob, hull,waterline,lambda_hull,lambda_waterline,intersection_points):
     '''
         plots the graph of the hull and water line
         args: intersection_points - a list of x coord of intersection of boat and waterline
@@ -133,6 +134,7 @@ def plot_graph(cob, hull,waterline,lambda_hull,lambda_waterline,intersection_poi
     plt.plot(y,waterline)
     plt.plot([-2,2],[0,0])
     plt.plot(cob[0],cob[1],'go')
+    plt.plot(com[0],com[1],'bo')
 
     if np.absolute(lambda_waterline(root1)) < 0.01 or np.absolute(lambda_waterline(root2)) < 0.01:
         plt.plot([root1,root2],[lambda_waterline(root1),lambda_waterline(root2)], 'ro')
@@ -215,6 +217,17 @@ def cob(hull_func,n,theta,m):
     print "z: ", (disp_y/disp)
     
     return (disp_z/disp,disp_y/disp)
+
+def com(hull_func,n,theta):
+    #density = 31.7 #kg/m^3
+    z_moment_cabbage = 0
+    y_moment_cabbage =  integrate.quad(lambda y: .5*(0 - (np.absolute(y)**n - 1)**2),-1,1)[0]
+    volume = -integrate.quad(hull_func,-1,1)[0]
+
+    #print "cabbages for david, ", (z_moment_cabbage/volume, y_moment_cabbage/volume)
+    return (z_moment_cabbage/volume, y_moment_cabbage/volume)
+    
+
 
 
 righting_arm(2, math.radians(140))
