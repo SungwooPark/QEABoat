@@ -16,13 +16,13 @@ def righting_arm(n,theta):
         Returns a coordinate and magitude of righting moment of the boat
     '''
     
-    d = .5 #compare() will replace this
+    d = .01 #compare() will replace this
 
-    y = np.linspace(-1,1,1000)
-    f1 = np.absolute(y)**n - 1 #Hull function without lambda    
+    y = np.linspace(-.1,.1,1000)
+    f1 = 10*np.absolute(y)**2 - 0.1 #Hull function without lambda    
     f2 = -np.tan(theta)*y - d
 
-    hull_function = lambda y: np.absolute(y)**n - 1
+    hull_function = lambda y: (1/(0.1)*np.absolute(y)**2 - 0.1)
     d = compare(hull_function,n,theta)
     water_line = lambda y: -np.tan(theta)*y - d
     
@@ -58,8 +58,8 @@ def intersection(hull_func,water_func,n,theta,d):
     '''
         Takes in function representation of hull and water line and then returns the roots
     '''
-    func_difference = lambda y: (-np.tan(theta)*y - d) - (np.absolute(y)**n - 1)
-    root = fsolve(func_difference,[-40,40])
+    func_difference = lambda y: (-np.tan(theta)*y - d) - (10*np.absolute(y)**2 - 0.1)
+    root = fsolve(func_difference,[-1,1])
 
     #print 'init root: ',root
     if theta > math.radians(80) and theta < math.radians(90):
@@ -68,9 +68,9 @@ def intersection(hull_func,water_func,n,theta,d):
     elif theta > math.radians(90) and theta < math.radians(100):
         root[0] = fsolve(func_difference,0)
         root[1] = fsolve(water_func,0)
-    elif np.absolute(root[0]) > 1:
+    elif np.absolute(root[0]) > .001:
         root[0] = fsolve(water_func,0)
-    elif np.absolute(root[1]) >1:
+    elif np.absolute(root[1]) >.001:
         root[1] = fsolve(water_func,0)
     #print 'this is root', root
     return root
@@ -81,20 +81,20 @@ def displacement(hull_func, water_func,n,theta,m):
         args: limits - a list with 2 elements (roots)
     '''
     limits = intersection(hull_func, water_func,n,theta,m)
-    func_difference_down = lambda y: (-np.tan(theta)*y - m)- (np.absolute(y)**n - 1)
+    func_difference_down = lambda y: (-np.tan(theta)*y - m)- (1/(0.1)*np.absolute(y)**2 - 0.1)
     func_difference_up = lambda y: (-np.tan(theta)*y - m)
     
    # print "root value: ", abs(water_func(limits[0]))
 
-    if abs(water_func(limits[0]))<0.01:
-        area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
+    if abs(water_func(limits[0]))<0.001:
+        area1 = np.absolute(integrate.quad(hull_func,-.1,limits[0])[0])
         #print 'area1: ',area1
         area2 = np.absolute(integrate.quad(func_difference_down,limits[0],limits[1])[0])
         #print 'area2: ',area2
         displacement = area1 + area2
         #print 'displacement: ',displacement
-    elif abs(water_func(limits[1]))<0.01:
-        area1 = np.absolute(integrate.quad(hull_func,-1,limits[0])[0])
+    elif abs(water_func(limits[1]))<0.001:
+        area1 = np.absolute(integrate.quad(hull_func,-.1,limits[0])[0])
         #print 'area1: ',area1
         area2 = np.absolute(integrate.quad(func_difference_up,limits[0],limits[1])[0])
         #print 'area2: ',area2
@@ -112,15 +112,15 @@ def total_mass(hull_func,n,theta):
     can_mass = .36 #kg
     mast_mass =.383 #kg
     density = 31.7 #kg/m^3
-    volume = -integrate.quad(hull_func,-1,1)[0]
+    volume = -integrate.quad(hull_func,-.1,.1)[0]
     mass = density * volume
-    return 900 #mass #=42... 
+    return mass #=42... 
 
 def compare(hull_func,n,theta):
     '''
         returns a value of d in which buoyancy = gravitational force
     '''
-    d = np.linspace(-20,20,100000)
+    d = np.linspace(-1,1,50000)
     for num in d:
         displaced_water = displacement(hull_func,lambda y: -np.tan(theta)*y - num,n,theta,num)
         buoyancy = 1000 * displaced_water
@@ -128,7 +128,7 @@ def compare(hull_func,n,theta):
         #print "dispaced_water", displaced_water
         #print "total mass: ", total_mass(hull_func,n,theta)
         #print "diff: ", np.absolute(total_mass(hull_func,n,theta)-buoyancy)
-        if np.absolute(total_mass(hull_func,n,theta)-buoyancy) < 0.5:
+        if np.absolute(total_mass(hull_func,n,theta)-buoyancy) < 0.05:
             return num
     return "Error 404: d not found"
  
@@ -140,20 +140,20 @@ def plot_graph(com, cob, hull,waterline,lambda_hull,lambda_waterline,intersectio
     
     #Reset axes
     axes = plt.gca()
-    axes.set_xlim([-1.7,1.7])
-    axes.set_ylim([-2,2]) 
+    axes.set_xlim([-.17,.17])
+    axes.set_ylim([-.2,.2]) 
 
     root1 = intersection_points[0]
     root2 = intersection_points[1]
 
-    y = np.linspace(-1,1,1000)
+    y = np.linspace(-.1,.1,1000)
     plt.plot(y,hull)
     plt.plot(y,waterline)
-    plt.plot([-2,2],[0,0])
+    plt.plot([-.2,.2],[0,0])
     plt.plot(cob[0],cob[1],'go')
     plt.plot(com[0],com[1],'bo')
     
-    if np.absolute(lambda_waterline(root1)) < 0.01 or np.absolute(lambda_waterline(root2)) < 0.01:
+    if np.absolute(lambda_waterline(root1)) < 0.001 or np.absolute(lambda_waterline(root2)) < 0.001:
         plt.plot([root1,root2],[lambda_waterline(root1),lambda_waterline(root2)], 'ro')
     else:
         plt.plot([root1,root2],[lambda_hull(root1),lambda_hull(root2)], 'ro')
@@ -165,7 +165,7 @@ def varying_theta_calc_displacement(n,d):
     displacements = []
     for angle in thetas:
         #print 'angle: ',angle
-        displacements.append(displacement(lambda y: np.absolute(y)**n - 1,
+        displacements.append(displacement(lambda y: (1/(0.1)*np.absolute(y)**2 - 0.1),
             lambda y: -np.tan(angle)*y - d,n,angle,d))
     #print displacements
     axes = plt.gca()
@@ -192,24 +192,24 @@ def cob(hull_func,n,theta,m):
     limits = intersection(hull_func, water_func,n,theta,m)
     
     #this is just here for reference, equations for mass of watah
-    func_difference_down = lambda y: (-np.tan(theta)*y - m)- (np.absolute(y)**n - 1)
+    func_difference_down = lambda y: (-np.tan(theta)*y - m)- (1/(0.1)*np.absolute(y)**2 - 0.1)
     func_difference_up = lambda y: (-np.tan(theta)*y - m)
     
     #equations for moment in z direction
-    func_difference_down_z = lambda y: ((-np.tan(theta)*y - m)- (np.absolute(y)**n - 1))*y
+    func_difference_down_z = lambda y: ((-np.tan(theta)*y - m)- (1/(0.1)*np.absolute(y)**2 - 0.1))*y
     func_difference_up_z = lambda y: (0 - (-np.tan(theta)*y - m))*y
-    hull_func_z = lambda y: -(np.absolute(y)**n - 1)*y
+    hull_func_z = lambda y: -(1/(0.1)*np.absolute(y)**2 - 0.1)*y
    
     #equations for moment in y direction
-    func_difference_down_y = lambda y: .5*((-np.tan(theta)*y - m)**2- (np.absolute(y)**n - 1)**2)
+    func_difference_down_y = lambda y: .5*((-np.tan(theta)*y - m)**2- (1/(0.1)*np.absolute(y)**2 - 0.1)**2)
     func_difference_up_y = lambda y: .5*(0 - (-np.tan(theta)*y - m)**2)
-    hull_func_y = lambda y: .5*(-(np.absolute(y)**n - 1)**2)
+    hull_func_y = lambda y: .5*(-(1/(0.1)*np.absolute(y)**2 - 0.1)**2)
 
-    if abs(water_func(limits[0]))<0.01:
+    if abs(water_func(limits[0]))<0.001:
         print "water line downnnnn and overdeck"
-        area1_z = integrate.quad(hull_func_z,-1,limits[0])[0]
+        area1_z = integrate.quad(hull_func_z,-.1,limits[0])[0]
         print "area1_z: ", area1_z
-        area1_y = integrate.quad(hull_func_y,-1,limits[0])[0]
+        area1_y = integrate.quad(hull_func_y,-.1,limits[0])[0]
         print "area1_y ", area1_y
         area2_z = integrate.quad(func_difference_down_z,limits[0],limits[1])[0]
         print "area2_z: ", area2_z
@@ -217,10 +217,10 @@ def cob(hull_func,n,theta,m):
         print "area2_y: ", area2_y
         disp_z =  (area1_z + area2_z)
         disp_y =  (area1_y + area2_y)
-    elif abs(water_func(limits[1]))<0.01:
+    elif abs(water_func(limits[1]))<0.001:
         print "water line upppppp and overdeck"
-        area1_z = (integrate.quad(hull_func_z,-1,limits[0])[0])
-        area1_y = (integrate.quad(hull_func_y,-1,limits[0])[0])
+        area1_z = (integrate.quad(hull_func_z,-.1,limits[0])[0])
+        area1_y = (integrate.quad(hull_func_y,-.1,limits[0])[0])
 
         print 'limits: ' + str(limits)
 
@@ -250,13 +250,13 @@ def cob(hull_func,n,theta,m):
 def com(hull_func,n,theta):
     #density = 31.7 #kg/m^3
     z_moment_cabbage = 0
-    y_moment_cabbage =  integrate.quad(lambda y: .5*(0 - (np.absolute(y)**n - 1)**2),-1,1)[0]
-    volume = -integrate.quad(hull_func,-1,1)[0]
+    y_moment_cabbage =  integrate.quad(lambda y: .5*(0 - (1/(0.1)*np.absolute(y)**2 - 0.1)**2),-.1,.1)[0]
+    volume = -integrate.quad(hull_func,-.1,.1)[0]
 
     #print "cabbages for david, ", (z_moment_cabbage/volume, y_moment_cabbage/volume)
-    return (z_moment_cabbage/volume, y_moment_cabbage/volume-.2)
+    return (z_moment_cabbage/volume, y_moment_cabbage/volume-.02)
     
 
 
-righting_arm(2, math.radians(100))
+righting_arm(2, math.radians(10))
 #cabbage(2)
